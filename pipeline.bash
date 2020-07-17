@@ -2,6 +2,8 @@
 clear
 echo 'Begin Analysis'
 echo $(date)
+source ~/anaconda3/etc/profile.d/conda.sh
+conda activate
 
 echo -ne "\e[97m"
 echo "===================================================================================="
@@ -130,7 +132,7 @@ echo -ne "\e[0m"
 	done < $data/mappingData.txt
 
 	# fix barcode file
-	python scripts/reformatBarcodes.py >> $out/bar.fasta
+	python scripts/reformatBarcodes.py $out/bar.fasta  >> $out/bar.fasta
 
 fi
 
@@ -195,7 +197,7 @@ echo "==========================================================================
 echo "=                         Taxonomy Prediction                                      ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax $out/otus.fasta -db $data/refData/database \
+	$usearch -sintax $out/otus.fasta -db $data/refData/$database \
 		-tabbedout $out/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	# python sintax file correction
@@ -205,6 +207,8 @@ echo -ne "\e[0m"
 		-output	$out/phylum_summary.txt -rank g
 
 fi
+
+conda deactivate
 
 #$usearch -otutab_rare otutab16s.txt -sample_size 5000 -output otutab_5k.txt
 exit
@@ -252,3 +256,4 @@ done
 	#tar --totals=USR1 -czvf dataCompress.tar out
 fi
 fi
+

@@ -21,9 +21,10 @@ def pairBasePair(bp):
 	}
 	return switch.get(bp)
 
+fileToFix = sys.argv[1]
 
 seqs = []
-with open('/home/jeffbrady/Data/19322Brd/out/bar.fasta','r') as data:
+with open(fileToFix,'r') as data:
 	dataList = data.readlines()
 	for i in range(0,len(dataList),2):
 		seq ={
