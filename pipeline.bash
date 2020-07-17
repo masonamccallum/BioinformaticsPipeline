@@ -52,31 +52,58 @@ case $section in
 		exit
 	;;
 esac
-
+clear
 echo -ne "\e[0m"
+
+if [ $choice -le 5 ]
+then 
+echo -ne "\e[97m"
+	echo 'Which reference Database will be used for taxon prediction?'
+	ls $data/refData | grep ".db"
+	read database
+echo -ne "\e[0m"
+fi
+
 
 # making directory structure
 mkdir -p $data/$section
 out=$data/$section/out
-echo $data
 mkdir -p $out
+
 if [ ! -d $data ]; then
 	echo "data directory is invalid"
+	echo "see notes for directory structure"
+	exit
+elif [ ! -d $data/raw ]; then
+	echo "data should be in a folder titles raw"
+	echo "see notes for directory structure"
 	exit
 elif [ ! -f $data'/raw/index1.fastq' ]; then
 	echo "index1.fastq not found"	
+	echo "see notes for directory structure"
 	exit
 elif [ ! -f $data'/raw/index2.fastq' ]; then
 	echo "index2.fastq not found"	
+	echo "see notes for directory structure"
+	exit
+elif [ ! -f $data/refData/$database ]; then
+	echo "database file is invalid"
+	echo "see notes for directory structure"
 	exit
 elif [ ! -f $data'/raw/read1.fastq' ]; then
 	echo "read1.fastq not found"	
+	echo "see notes for directory structure"
 	exit
 elif [ ! -f $data'/raw/read2.fastq' ]; then
 	echo "read2.fastq not found"	
+	echo "see notes for directory structure"
 	exit
 elif [ ! -f $data'/mappingData.txt' ]; then
 	echo "mappingData.txt not found"	
+	echo "see notes for directory structure"
+	exit
+elif [ ! -d scripts ]; then
+	echo "scripts folder not present"
 	exit
 fi
 
@@ -134,13 +161,13 @@ echo -ne "\e[0m"
 	$usearch -fastq_filter $out/merged.fastq -fastq_maxee 1.0 \
 		-fastaout $out/filtered.fasta 
 
-	$usearch8 -search_pcr $out/filtered.fasta -db $data/refData/primer16s.fasta -strand both \
-		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout $out/filtered16s.fasta
+	$usearch8 -search_pcr $out/filtered.fasta -db $data/refData/primer$section.fasta -strand both \
+		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout $out/filtered$section.fasta
 	
 	#$usearch -fastx_truncate $out/merged.fastq -stripleft 19 -stripright 20 \
 	#	-fastqout $out/strippedMerged.fastq
 
-	$usearch -fastx_uniques $out/filtered16s.fasta -fastaout $out/uniques.fasta\
+	$usearch -fastx_uniques $out/filtered$section.fasta -fastaout $out/uniques.fasta\
 	-sizeout -relabel Uniq 
 fi
 
@@ -168,7 +195,7 @@ echo "==========================================================================
 echo "=                         Taxonomy Prediction                                      ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax $out/otus.fasta -db $data/refData/rdp_16s_v16.fa \
+	$usearch -sintax $out/otus.fasta -db $data/refData/database \
 		-tabbedout $out/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	# python sintax file correction
@@ -180,7 +207,7 @@ echo -ne "\e[0m"
 fi
 
 #$usearch -otutab_rare otutab16s.txt -sample_size 5000 -output otutab_5k.txt
-
+exit
 if [ $choice -le -1 ]
 then
 echo -ne "\e[97m"
