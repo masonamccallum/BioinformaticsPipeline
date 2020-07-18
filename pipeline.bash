@@ -30,7 +30,7 @@ echo '1: Full Analysis (All Steps)'
 echo '2: demultiplex'
 echo '3: Data prep (merge,filter,unique)'
 echo '4: Create otu/zotu/tables'
-echo '5: taxonomy prediction'
+echo '5: Downstream Analysis'
 
 read choice
 
@@ -60,6 +60,23 @@ echo -ne "\e[0m"
 if [ $choice -le 5 ]
 then 
 echo -ne "\e[97m"
+	echo 'Which type of otu would you like to use?'
+	echo '1) OTU'
+	echo '2) ZOTU'
+	read otutype
+	echo $otutype
+	if [ "1" == "$otutype" ]; then
+		otutype="OTU"
+		mkdir -p $out/OTU
+	elif [ "2" == "$otutype" ]; then
+		otutype="ZOTU"
+		mkdir -p $out/ZOTU
+	else
+		echo "error selecting otu type"
+		exit
+	fi
+	echo $otutype
+
 	echo 'Which reference Database will be used for taxon prediction?'
 	ls $data/refData | grep ".db"
 	read database
@@ -69,8 +86,7 @@ fi
 
 # making directory structure
 mkdir -p $data/$section
-out=$data/$section/out
-mkdir -p $out
+out=$data/$section/
 
 if [ ! -d $data ]; then
 	echo "data directory is invalid"
@@ -186,26 +202,27 @@ echo -ne "\e[0m"
 	$usearch -unoise3 $out/uniques.fasta -zotus $out/zotu.fasta\
 		-tabbedout $out/unoise3.txt
 	
-	$usearch -otutab $out/merged.fastq -otus $out/otus.fasta -otutabout \
-		$out/otutab.txt
-fi
+	$usearch -otutab $out/merged.fastq -otus $out/OTU.fasta -otutabout \
+		$out/tabOTU.txt
 
+	$usearch -otutab $out/merged.fastq -zotus $out/ZOTU.fasta -otutabout \
+		$out/tabZOTU.txt
+fi
 if [ $choice -le 5 ]
 then 
 echo -ne "\e[97m"
 echo "===================================================================================="
-echo "=                         Taxonomy Prediction                                      ="
+echo "=                      Downstream Analysis                                         ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax $out/otus.fasta -db $data/refData/$database \
-		-tabbedout $out/reads.sintax -strand both -sintax_cutoff 0.8
+	$usearch -sintax $out/$otutype/$otutype.fasta -db $data/refData/$database \
+		-tabbedout $out/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	# python sintax file correction
-	python scripts/fixSintax.py $out/reads.sintax
+	python scripts/fixSintax.py $out/$otutype/reads.sintax
 
-	$usearch -sintax_summary $out/reads.sintax -otutabin $out/otutab.txt \
-		-output	$out/phylum_summary.txt -rank g
-
+	$usearch -sintax_summary $out/$otutype/reads.sintax -otutabin $out/tab$otutype.txt \
+		-output	$out/$otutype/phylum_summary.txt -rank g
 fi
 
 conda deactivate
