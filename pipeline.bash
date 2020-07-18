@@ -197,9 +197,9 @@ echo "=                         Create OTU/ZOTU/Table                           
 echo "===================================================================================="
 echo -ne "\e[0m"
 	$usearch -cluster_otus $out/uniques.fasta -minsize 2 \
-		-otus $out/otus.fasta -relabel Otu
+		-otus $out/OTU.fasta -relabel Otu
 
-	$usearch -unoise3 $out/uniques.fasta -zotus $out/zotu.fasta\
+	$usearch -unoise3 $out/uniques.fasta -zotus $out/ZOTU.fasta\
 		-tabbedout $out/unoise3.txt
 	
 	$usearch -otutab $out/merged.fastq -otus $out/OTU.fasta -otutabout \
@@ -207,6 +207,13 @@ echo -ne "\e[0m"
 
 	$usearch -otutab $out/merged.fastq -zotus $out/ZOTU.fasta -otutabout \
 		$out/tabZOTU.txt
+	
+	$usearch -otutab_rare $out/tabOTU.txt -sample_size 5000 -output \
+		$out/OTU/OTU_5k_rare.txt
+
+	$usearch -otutab_rare $out/tabZOTU.txt -sample_size 5000 -output \
+		$out/ZOTU/ZOTU_5k_rare.txt
+	
 fi
 if [ $choice -le 5 ]
 then 
@@ -215,7 +222,7 @@ echo "==========================================================================
 echo "=                      Downstream Analysis                                         ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax $out/$otutype/$otutype.fasta -db $data/refData/$database \
+	$usearch -sintax $out/$otutype.fasta -db $data/refData/$database \
 		-tabbedout $out/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	# python sintax file correction
@@ -223,11 +230,14 @@ echo -ne "\e[0m"
 
 	$usearch -sintax_summary $out/$otutype/reads.sintax -otutabin $out/tab$otutype.txt \
 		-output	$out/$otutype/phylum_summary.txt -rank g
+
+	$usearch -alpha_div	$out/$otutype/"$otutype"_5k_rare.txt	-output	$out/$otutpe/alpha.txt
+	#$usearch -cluster_agg	$out/$otutype.fasta -treeout $out/$otutype/$otutype.tree
+	#beta div -- Coming soon to theaters near you
 fi
 
 conda deactivate
 
-#$usearch -otutab_rare otutab16s.txt -sample_size 5000 -output otutab_5k.txt
 exit
 if [ $choice -le -1 ]
 then
