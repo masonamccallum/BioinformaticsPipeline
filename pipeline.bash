@@ -135,7 +135,7 @@ echo -ne "\e[0m"
 
 	$usearch -sintax_summary out/$section/$otutype/reads.sintax \
 		-otutabin out/$section/tab$otutype.txt \
-		-output out/$section/$otutype/phylum_summary.txt -rank g
+		-output out/$section/$otutype/phylum_summary.txt -rank p
 
 	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$otutpe/alpha.txt
 	$usearch -beta_div out/$section/tab$otutype.txt -filename_prefix out/$section/$otutype/  
