@@ -133,11 +133,11 @@ echo -ne "\e[0m"
 	#python sintax file correction
 	python scripts/fixSintax.py out/$section/$otutype/reads.sintax
 
-	$usearch -sintax_summary out/$section/reads.sintax -otutabin
-		out/$section/tab$otutype.txt -output out/$section/$otutype/phylum_summary.txt \ 
-		-rank g
+	$usearch -sintax_summary out/$section/$otutype/reads.sintax \
+		-otutabin out/$section/tab$otutype.txt \
+		-output out/$section/$otutype/phylum_summary.txt -rank g
 
-	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt	-output	out/$otutpe/alpha.txt
+	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$otutpe/alpha.txt
 	#$usearch -cluster_agg	out/$otutype.fasta -treeout out/$otutype/$otutype.tree
 	#beta div -- Coming soon to theaters near you
 fi
