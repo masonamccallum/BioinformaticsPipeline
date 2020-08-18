@@ -16,29 +16,18 @@ if [ x$usearch == x ] ; then
 	exit 1
 fi
 
-if [ "$1" == "" ]
-then
-	echo 'What is the file path to your data?'
-	read data
-else
-	data=$1
-fi
-
 echo -ne "\e[97m"
 echo 'Where would you like the analysis to start?'
-echo '1: Full Analysis (All Steps)'
-echo '2: demultiplex'
 echo '3: Data prep (merge,filter,unique)'
 echo '4: Create otu/zotu/tables'
 echo '5: Downstream Analysis'
 
 read choice
-
 clear
 
 echo 'Select ITS or 16s'
 echo '1: ITS'
-echo '2: 16s'
+echo '2: 16S'
 #echo '3: 18s'
 
 read section
@@ -47,7 +36,7 @@ case $section in
 		section='ITS'
 	;;
 	2)
-		section='16s'
+		section='16S'
 	;;
 	*)
 		echo "Not Supported"
@@ -67,104 +56,20 @@ echo -ne "\e[97m"
 	echo $otutype
 	if [ "1" == "$otutype" ]; then
 		otutype="OTU"
-		mkdir -p $out/OTU
 	elif [ "2" == "$otutype" ]; then
 		otutype="ZOTU"
-		mkdir -p $out/ZOTU
 	else
 		echo "error selecting otu type"
 		exit
 	fi
-	echo $otutype
 
 	echo 'Which reference Database will be used for taxon prediction?'
-	ls $data/refData | grep ".db"
+	ls refData | grep ".db"
 	read database
 echo -ne "\e[0m"
 fi
 
-
-# making directory structure
-mkdir -p $data/$section
-out=$data/$section/
-
-if [ ! -d $data ]; then
-	echo "data directory is invalid"
-	echo "see notes for directory structure"
-	exit
-elif [ ! -d $data/raw ]; then
-	echo "data should be in a folder titles raw"
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data'/raw/index1.fastq' ]; then
-	echo "index1.fastq not found"	
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data'/raw/index2.fastq' ]; then
-	echo "index2.fastq not found"	
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data/refData/$database ]; then
-	echo "database file is invalid"
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data'/raw/read1.fastq' ]; then
-	echo "read1.fastq not found"	
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data'/raw/read2.fastq' ]; then
-	echo "read2.fastq not found"	
-	echo "see notes for directory structure"
-	exit
-elif [ ! -f $data'/mappingData.txt' ]; then
-	echo "mappingData.txt not found"	
-	echo "see notes for directory structure"
-	exit
-elif [ ! -d scripts ]; then
-	echo "scripts folder not present"
-	exit
-fi
-
 clear
-
-if [ $choice -le 1 ]
-then
-echo -ne "\e[97m"
-echo "===================================================================================="
-echo "=                         Create index and barcode files                           ="
-echo "===================================================================================="
-echo -ne "\e[0m"
-
-	rm -f $out/*
-	# join index files to indices file
-	$usearch -fastq_join $data/raw/index1.fastq -reverse $data/raw/index2.fastq -join_padgap\
-		"" -threads 1 -fastqout $out/indices.fastq
-
-	# createBarcode file
-	while IFS=$'\t' read -r -a line
-	do
-		echo ">${line[0]}" >> $out/bar.fasta	
-		echo "${line[1]}" >> $out/bar.fasta
-	done < $data/mappingData.txt
-
-	# fix barcode file
-	python scripts/reformatBarcodes.py $out/bar.fasta  >> $out/bar.fasta
-
-fi
-
-if [ $choice -le 2 ]
-then
-echo -ne "\e[97m"
-echo "===================================================================================="
-echo "=                         Demultiplex                                              ="
-echo "===================================================================================="
-echo -ne "\e[0m"
-	$usearch -fastx_demux $data/raw/read1.fastq -reverse $data/raw/read2.fastq\
-		-index $out/indices.fastq -barcodes $out/bar.fasta\
-		-fastqout $out/demux_R1.fastq -output2 $out/demux_R2.fastq
-	$usearch -fastx_info $out/demux_R1.fastq
-fi
-
 
 if [ $choice -le 3 ]
 then
@@ -173,20 +78,20 @@ echo "==========================================================================
 echo "=                         Data Prep                                                ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -fastq_mergepairs $out/demux_R1.fastq \
-		-fastq_maxdiffs 5 -fastqout $out/merged.fastq
+	$usearch -fastq_mergepairs out/rawData/demux_R1.fastq \
+		-fastq_maxdiffs 5 -fastqout out/merged.fastq
 
-	$usearch -fastq_filter $out/merged.fastq -fastq_maxee 1.0 \
-		-fastaout $out/filtered.fasta 
+	$usearch -fastq_filter out/merged.fastq -fastq_maxee 1.0 \
+		-fastaout out/filtered.fasta 
 
-	$usearch8 -search_pcr $out/filtered.fasta -db $data/refData/primer$section.fasta -strand both \
-		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout $out/filtered$section.fasta
+	$usearch8 -search_pcr out/filtered.fasta -db refData/primer$section.fasta -strand both \
+		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filtered.fasta
 	
-	#$usearch -fastx_truncate $out/merged.fastq -stripleft 19 -stripright 20 \
-	#	-fastqout $out/strippedMerged.fastq
+	$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
+		-fastqout out/strippedMerged.fastq
 
-	$usearch -fastx_uniques $out/filtered$section.fasta -fastaout $out/uniques.fasta\
-	-sizeout -relabel Uniq 
+	$usearch -fastx_uniques out/$section/filtered.fasta -fastaout out/$section/uniques.fasta\
+		-sizeout -relabel Uniq 
 fi
 
 if [ $choice -le 4 ]
@@ -196,23 +101,23 @@ echo "==========================================================================
 echo "=                         Create OTU/ZOTU/Table                                    ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -cluster_otus $out/uniques.fasta -minsize 2 \
-		-otus $out/OTU.fasta -relabel Otu
+	$usearch -cluster_otus out/$section/uniques.fasta -minsize 2 \
+		-otus out/$section/OTU.fasta -relabel Otu
 
-	$usearch -unoise3 $out/uniques.fasta -zotus $out/ZOTU.fasta\
-		-tabbedout $out/unoise3.txt
+	$usearch -unoise3 out/$section/uniques.fasta -zotus out/$section/ZOTU.fasta\
+		-tabbedout out/$section/unoise3.txt
 	
-	$usearch -otutab $out/merged.fastq -otus $out/OTU.fasta -otutabout \
-		$out/tabOTU.txt
+	$usearch -otutab out/merged.fastq -otus out/$section/OTU.fasta -otutabout \
+		out/$section/tabOTU.txt
 
-	$usearch -otutab $out/merged.fastq -zotus $out/ZOTU.fasta -otutabout \
-		$out/tabZOTU.txt
+	$usearch -otutab out/merged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
+		out/$section/tabZOTU.txt
 	
-	$usearch -otutab_rare $out/tabOTU.txt -sample_size 5000 -output \
-		$out/OTU/OTU_5k_rare.txt
+	$usearch -otutab_rare out/$section/tabOTU.txt -sample_size 5000 -output \
+		out/$section/OTU/OTU_5k_rare.txt
 
-	$usearch -otutab_rare $out/tabZOTU.txt -sample_size 5000 -output \
-		$out/ZOTU/ZOTU_5k_rare.txt
+	$usearch -otutab_rare out/$section/tabZOTU.txt -sample_size 5000 -output \
+		out/$section/ZOTU/ZOTU_5k_rare.txt
 	
 fi
 if [ $choice -le 5 ]
@@ -222,65 +127,19 @@ echo "==========================================================================
 echo "=                      Downstream Analysis                                         ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax $out/$otutype.fasta -db $data/refData/$database \
-		-tabbedout $out/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
+	$usearch -sintax out/$section/$otutype.fasta -db refData/$database \
+		-tabbedout out/$section/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
 	
-	# python sintax file correction
-	python scripts/fixSintax.py $out/$otutype/reads.sintax
+	#python sintax file correction
+	python scripts/fixSintax.py out/$section/$otutype/reads.sintax
 
-	$usearch -sintax_summary $out/$otutype/reads.sintax -otutabin $out/tab$otutype.txt \
-		-output	$out/$otutype/phylum_summary.txt -rank g
+	$usearch -sintax_summary out/$section/reads.sintax -otutabin
+		out/$section/tab$otutype.txt -output out/$section/$otutype/phylum_summary.txt \ 
+		-rank g
 
-	$usearch -alpha_div	$out/$otutype/"$otutype"_5k_rare.txt	-output	$out/$otutpe/alpha.txt
-	#$usearch -cluster_agg	$out/$otutype.fasta -treeout $out/$otutype/$otutype.tree
+	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt	-output	out/$otutpe/alpha.txt
+	#$usearch -cluster_agg	out/$otutype.fasta -treeout out/$otutype/$otutype.tree
 	#beta div -- Coming soon to theaters near you
 fi
 
 conda deactivate
-
-exit
-if [ $choice -le -1 ]
-then
-echo -ne "\e[97m"
-echo "===================================================================================="
-echo "=                         Conclusion                                               ="
-echo "===================================================================================="
-echo ""
-echo "===================================================================================="
-echo "=                                                                                  ="
-echo "=                                                                                  ="
-echo "=        When this feature is complete there will be stats on this run here        ="
-echo "=                                                                                  ="
-echo "=                                                                                  ="
-echo "===================================================================================="
-echo 'How would you like to conlcude this run?'
-echo '1: Delete run'
-echo '2: Save run'
-read choice
-echo -ne "\e[0m"
-
-if [ $choice == 2 ]
-then
-echo 'the saving feature is not complete.'
-exit
-num=0
-	echo 'Who is saving this data?'
-	read name
-while [ -d  $data/AnalysisSummary/$(date "+%d-%m-%y").$name.$num ]
-do
-	num=$((num + 1))
-done
-	#mkdir $data/AnalysisSummary/$(date "+%d-%m-%y").$name.$num
-	#echo 'What is significant about this run? this will be stored with saved data?'
-	#read sig
-	#clear
-	#echo $sig >> $data/AnalysisSummary/$(date "+%d-%m-%y").$name.$num/README.md
-	#save=AnalysisSummary/$(date "+%d-%m-%y").$name.$num
-	#cd $data
-	# tar -zcvf dataCompress.tar --full-time out 
-	# tar cf - $out -P | pv -s $(du -sb $out | awk '{print $1}') | gzip > big-files.tar.gz
-	# mv dataCompress.tar ../$save
-	#tar --totals=USR1 -czvf dataCompress.tar out
-fi
-fi
-
