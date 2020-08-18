@@ -87,8 +87,8 @@ echo -ne "\e[0m"
 	$usearch8 -search_pcr out/filtered.fasta -db refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filtered.fasta
 	
-	$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
-		-fastqout out/strippedMerged.fastq
+	#$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
+	#	-fastqout out/strippedMerged.fastq
 
 	$usearch -fastx_uniques out/$section/filtered.fasta -fastaout out/$section/uniques.fasta\
 		-sizeout -relabel Uniq 
