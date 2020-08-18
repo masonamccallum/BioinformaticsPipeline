@@ -138,8 +138,8 @@ echo -ne "\e[0m"
 		-output out/$section/$otutype/phylum_summary.txt -rank g
 
 	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$otutpe/alpha.txt
+	$usearch -beta_div out/$section/tab$otutype.txt -filename_prefix out/$section/$otutype/  
 	#$usearch -cluster_agg	out/$otutype.fasta -treeout out/$otutype/$otutype.tree
-	#beta div -- Coming soon to theaters near you
 fi
 
 conda deactivate
