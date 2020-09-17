@@ -1,4 +1,3 @@
-import subprocess
 import time
 import os
 import sys
@@ -42,11 +41,9 @@ def printTaxonomy(line):
 			output += ','
 	return output
 
-print("\nedditing sintax file")
-import fileinput
 import re
 i = 0
-with fileinput.input(fileToFix,inplace=True) as file:
+with open(fileToFix, "r") as file:
 	for line in file:
 		#if re.search('^.*\s+\s$',line):
 		if badLine(line):
@@ -54,5 +51,3 @@ with fileinput.input(fileToFix,inplace=True) as file:
 			line = printTaxonomy(line)
 		line = line.strip("\n")
 		print(line)
-
-print("process complete\n\n")
