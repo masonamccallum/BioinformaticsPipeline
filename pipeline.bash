@@ -87,8 +87,8 @@ echo -ne "\e[0m"
 	$usearch8 -search_pcr out/filtered.fasta -db refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filtered.fasta
 	
-	#$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
-	#	-fastqout out/strippedMerged.fastq
+	$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
+		-fastqout out/strippedMerged.fastq
 
 	$usearch -fastx_uniques out/$section/filtered.fasta -fastaout out/$section/uniques.fasta\
 		-sizeout -relabel Uniq 
@@ -131,11 +131,20 @@ echo -ne "\e[0m"
 		-tabbedout out/$section/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	#python sintax file correction
-	python scripts/fixSintax.py out/$section/$otutype/reads.sintax
+	python scripts/fixSintax.py out/$section/$otutype/reads.sintax > out/$section/$otutype/temp.txt
+	cp out/$section/$otutype/temp.txt out/$section/$otutype/reads.sintax
 
 	$usearch -sintax_summary out/$section/$otutype/reads.sintax \
 		-otutabin out/$section/tab$otutype.txt \
 		-output out/$section/$otutype/phylum_summary.txt -rank p
+
+	$usearch -sintax_summary out/$section/$otutype/reads.sintax \
+		-otutabin out/$section/tab$otutype.txt \
+		-output out/$section/$otutype/genus_summary.txt -rank g
+
+	$usearch -sintax_summary out/$section/$otutype/reads.sintax \
+		-otutabin out/$section/tab$otutype.txt \
+		-output out/$section/$otutype/family_summary..txt -rank f
 
 	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$otutpe/alpha.txt
 	$usearch -beta_div out/$section/tab$otutype.txt -filename_prefix out/$section/$otutype/  
