@@ -155,7 +155,7 @@ echo -ne "\e[0m"
 		-otutabin out/$section/tab$otutype.txt \
 		-output out/$section/$otutype/family_summary..txt -rank f
 
-	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$otutpe/alpha.txt
+	$usearch -alpha_div	out/$section/$otutype/"$otutype"_5k_rare.txt  -output	out/$section/$otutype/alpha.txt
 	$usearch -beta_div out/$section/tab$otutype.txt -filename_prefix out/$section/$otutype/  
 	#$usearch -cluster_agg	out/$otutype.fasta -treeout out/$otutype/$otutype.tree
 fi
