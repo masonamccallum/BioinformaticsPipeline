@@ -78,20 +78,23 @@ echo "==========================================================================
 echo "=                         Data Prep                                                ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -fastq_mergepairs out/rawData/demux_R1.fastq \
-		-fastq_maxdiffs 5 -fastqout out/merged.fastq
+	$usearch -fastq_mergepairs out/rawData/demux_R1_$section.fastq \
+		-fastq_maxdiffs 5 -fastqout out/$section/merged.fastq
 
-	$usearch -fastq_filter out/merged.fastq -fastq_maxee 1.0 \
-		-fastaout out/filtered.fasta 
+	$usearch -fastq_filter out/$section/merged.fastq -fastq_maxee 1.0 \
+		-fastaout out/$section/filtered.fasta 
 
-	$usearch8 -search_pcr out/filtered.fasta -db refData/primer$section.fasta -strand both \
+	$usearch8 -search_pcr out/$section/filtered.fasta -db refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filtered.fasta
 	
-	$usearch -fastx_truncate out/merged.fastq -stripleft 19 -stripright 20 \
-		-fastqout out/strippedMerged.fastq
+	$usearch -fastx_truncate out/$section/merged.fastq -stripleft 19 -stripright 20 \
+		-fastqout out/$section/strippedMerged.fastq
 
-	$usearch -fastx_uniques out/$section/filtered.fasta -fastaout out/$section/uniques.fasta\
+	$usearch -fastx_uniques out/$section/strippedMerged.fasta -fastaout out/$section/uniques.fasta\
 		-sizeout -relabel Uniq 
+
+	#$usearch -fastx_uniques out/$section/filtered.fasta -fastaout out/$section/uniques.fasta\
+	#	-sizeout -relabel Uniq 
 fi
 
 if [ $choice -le 4 ]
@@ -107,10 +110,16 @@ echo -ne "\e[0m"
 	$usearch -unoise3 out/$section/uniques.fasta -zotus out/$section/ZOTU.fasta\
 		-tabbedout out/$section/unoise3.txt
 	
-	$usearch -otutab out/merged.fastq -otus out/$section/OTU.fasta -otutabout \
+	#$usearch -otutab out/merged.fastq -otus out/$section/OTU.fasta -otutabout \
+	#	out/$section/tabOTU.txt
+
+	$usearch -otutab out/$section/strippedMerged.fastq -otus out/$section/OTU.fasta -otutabout \
 		out/$section/tabOTU.txt
 
-	$usearch -otutab out/merged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
+	#$usearch -otutab out/merged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
+	#	out/$section/tabZOTU.txt
+
+	$usearch -otutab out/$section/strippedMerged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
 		out/$section/tabZOTU.txt
 	
 	$usearch -otutab_rare out/$section/tabOTU.txt -sample_size 5000 -output \
@@ -150,5 +159,4 @@ echo -ne "\e[0m"
 	$usearch -beta_div out/$section/tab$otutype.txt -filename_prefix out/$section/$otutype/  
 	#$usearch -cluster_agg	out/$otutype.fasta -treeout out/$otutype/$otutype.tree
 fi
-
 conda deactivate
