@@ -57,7 +57,7 @@ rm -rf BioinformaticsPipeline
 # copy refDataOver
 
 $usearch -fastq_join $seqData/index1.fastq -reverse $seqData/index2.fastq -join_padgap\
-	"" -threads 1 -fastqout out/rawData/indices_16S.fastq
+	"" -threads 1 -fastqout out/rawData/indices.fastq
 
 while IFS=$'\t' read -r -a line
 do
@@ -65,15 +65,17 @@ do
 	echo "${line[1]}" >> out/bar.fasta
 done < mappingData.txt
 
-python scripts/reformatBarcodes.py out/bar.fasta >> out/16Sbar.fasta
-python scripts/barcodeSeperate16sandITS.py
+
+echo 'Running python scripts to reformat barcode files'
+python scripts/reformatBarcodes.py out/bar.fasta >> out/bar.fasta
+python scripts/barcodeSeperate16sandITS.py out/bar.fasta
 
 $usearch -fastx_demux $seqData/read1.fastq -reverse $seqData/read2.fastq\
-	-index out/rawData/indices_16S.fastq -barcodes out/16Sbar.fasta\
+	-index out/rawData/indices.fastq -barcodes out/16Sbar.fasta\
 	-fastqout out/rawData/demux_R1_16S.fastq -output2 out/rawData/demux_R2_16S.fastq
 
 $usearch -fastx_demux $seqData/read1.fastq -reverse $seqData/read2.fastq\
-	-index out/rawData/indices_ITS.fastq -barcodes out/ITSbar.fasta\
+	-index out/rawData/indices.fastq -barcodes out/ITSbar.fasta\
 	-fastqout out/rawData/demux_R1_ITS.fastq -output2 out/rawData/demux_R2_ITS.fastq
 
 conda deactivate
