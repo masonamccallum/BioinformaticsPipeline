@@ -4,8 +4,8 @@ sys.path.insert(1,'../')
 barFile = sys.argv[1]
 
 seqs = []
-bar16S = open("../out/16SBar.fasta","w")
-barITS = open("../out/ITSBar.fasta","w")
+bar16S = open("out/16SBar.fasta","w")
+barITS = open("out/ITSBar.fasta","w")
 
 with open(barFile,'r') as barIn:
 	dataList = barIn.readlines()
