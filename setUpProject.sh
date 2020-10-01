@@ -25,7 +25,14 @@ if [ -d 'scripts' ]; then
 	fi
 fi
 shopt -s extglob
-rm -vrf !(mappingData.txt)
+
+if [ -f "mappingData.txt" ]; then
+	rm -vrf !(mappingData.txt)
+else
+	echo "not correct dir"
+	exit
+fi
+
 
 if [ ! -f 'mappingData.txt' ]; then
 	echo "You must have a mappingData.txt file in this directory before it can be initialized"
@@ -50,7 +57,7 @@ rm -rf BioinformaticsPipeline
 # copy refDataOver
 
 $usearch -fastq_join $seqData/index1.fastq -reverse $seqData/index2.fastq -join_padgap\
-	"" -threads 1 -fastqout out/rawData/indices.fastq
+	"" -threads 1 -fastqout out/rawData/indices_16S.fastq
 
 while IFS=$'\t' read -r -a line
 do
@@ -58,8 +65,8 @@ do
 	echo "${line[1]}" >> out/bar.fasta
 done < mappingData.txt
 
-python scripts/reformatBarcodes.py out/bar.fasta >> out/bar.fasta
-python scripts/barcodeSeperate16sandITS.py out/bar.fasta
+python scripts/reformatBarcodes.py out/bar.fasta >> out/16Sbar.fasta
+python scripts/barcodeSeperate16sandITS.py
 
 $usearch -fastx_demux $seqData/read1.fastq -reverse $seqData/read2.fastq\
 	-index out/rawData/indices_16S.fastq -barcodes out/16Sbar.fasta\
