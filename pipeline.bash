@@ -113,13 +113,13 @@ echo -ne "\e[0m"
 	#$usearch -otutab out/merged.fastq -otus out/$section/OTU.fasta -otutabout \
 	#	out/$section/tabOTU.txt
 
-	$usearch -otutab out/$section/strippedMerged.fastq -otus out/$section/OTU.fasta -otutabout \
+	$usearch -otutab out/$section/strippedMerged.fasta -otus out/$section/OTU.fasta -otutabout \
 		out/$section/tabOTU.txt
 
 	#$usearch -otutab out/merged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
 	#	out/$section/tabZOTU.txt
 
-	$usearch -otutab out/$section/strippedMerged.fastq -zotus out/$section/ZOTU.fasta -otutabout \
+	$usearch -otutab out/$section/strippedMerged.fasta -zotus out/$section/ZOTU.fasta -otutabout \
 		out/$section/tabZOTU.txt
 	
 	$usearch -otutab_rare out/$section/tabOTU.txt -sample_size 5000 -output \
