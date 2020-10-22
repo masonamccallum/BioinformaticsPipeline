@@ -14,16 +14,12 @@ with open(barFile,'r') as barIn:
 			'ID': dataList[i].strip('\n'),
 			'barcode' : dataList[i+1].strip('\n'),
 		}
-		if "ITS" in seq['ID']:
+		if "ITS" in seq['ID']:   #If this is not specified sequences are assumed to be 16s
 			barITS.write(seq['ID']+'\n')
 			barITS.write(seq['barcode']+'\n')
-		elif "16S" in seq['ID']:
+		else:
 			bar16S.write(seq['ID']+'\n')
 			bar16S.write(seq['barcode']+'\n')
-		else:
-			print(f"{seq['ID']}")
-			print(f"{seq['barcode']}")
-			
 
 barITS.close()
 bar16S.close()
