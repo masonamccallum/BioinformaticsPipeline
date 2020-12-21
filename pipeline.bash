@@ -25,10 +25,28 @@ echo '5: Downstream Analysis'
 read choice
 clear
 
+echo 'Which trimming method would you prefer?'
+echo '1: Usearch trimming (Method that trims each individual sequence at specified quality along its sequence)'
+echo '2: Flat trim (Method that trims all sequences the same at a specified bp)'
+
+read trimtype
+case $trimtype in
+	1)
+		trimtype='usearch'
+	;;
+	2)
+		trimtype='flattrim'
+	;;
+	*)
+		echo "Not Supported"
+		exit
+	;;
+esac
+clear
 echo 'Select ITS or 16s'
 echo '1: ITS'
 echo '2: 16S'
-#echo '3: 18s'
+echo '3: 18s'
 
 read section
 case $section in
@@ -78,11 +96,33 @@ echo "==========================================================================
 echo "=                         Data Prep                                                ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -fastq_mergepairs out/rawData/demux_R1_$section.fastq \
-		-fastq_maxdiffs 5 -fastqout out/$section/merged.fastq
 
-	$usearch -fastq_filter out/$section/merged.fastq -fastq_maxee 1.0 \
-		-fastaout out/$section/filtered.fasta 
+echo $trimtype
+
+if [ $trimtype == "usearch" ]
+then
+	echo 'Starting Usearch merge and trim'
+	$usearch -fastq_mergepairs out/rawData/demux_R1_$section.fastq \
+		-fastq_maxdiffs 25 -fastq_trunctail 10 -fastqout out/$section/merged.fastq
+fi
+
+if [ $trimtype == "flattrim" ]
+then
+	echo 'Starting flattrim'
+	echo 'What would you like to trim the forward sequence to?'
+	read trimLenForward
+	echo 'What would you like to trim the reverse sequence to?'
+	read trimLenReverse
+
+	$usearch -fastx_truncate out/rawData/demux_R1_$section.fastq -trunclen $trimLenForward -fastqout out/rawData/reads1Trunc.fastq
+	$usearch -fastx_truncate out/rawData/demux_R2_$section.fastq -trunclen $trimLenReverse -fastqout out/rawData/reads2Trunc.fastq
+	conda activate py2	
+	python scripts/fastqCombinePariedEnd.py out/rawData/reads1Trunc.fastq out/rawData/reads2Trunc.fastq
+	conda deactivate
+	$usearch -fastx_syncpairs out/rawData/reads1Trunc.fastq_pairs_R1.fastq -reverse out/rawData/reads2Trunc.fastq_pairs_R2.fastq -output out/$section/fwd_sorted.fastq -output2 out/$section/rev_sorted.fastq
+	$usearch -fastq_mergepairs out/$section/fwd_sorted.fastq -reverse out/$section/rev_sorted.fastq -fastqout out/$section/merged.fastq	
+fi
+
 
 	$usearch8 -search_pcr out/$section/filtered.fasta -db refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filteredSeq.fasta
