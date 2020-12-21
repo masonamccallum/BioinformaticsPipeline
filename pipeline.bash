@@ -82,7 +82,7 @@ echo -ne "\e[97m"
 	fi
 
 	echo 'Which reference Database will be used for taxon prediction?'
-	ls refData | grep ".db"
+	ls ~/refData | grep ".db"
 	read database
 echo -ne "\e[0m"
 fi
@@ -124,7 +124,7 @@ then
 fi
 
 
-	$usearch8 -search_pcr out/$section/filtered.fasta -db refData/primer$section.fasta -strand both \
+	$usearch8 -search_pcr out/$section/filtered.fasta -db ~/refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filteredSeq.fasta
 	
 	$usearch -fastx_truncate out/$section/merged.fastq -stripleft 19 -stripright 20 \
@@ -176,7 +176,7 @@ echo "==========================================================================
 echo "=                      Downstream Analysis                                         ="
 echo "===================================================================================="
 echo -ne "\e[0m"
-	$usearch -sintax out/$section/$otutype.fasta -db refData/$database \
+	$usearch -sintax out/$section/$otutype.fasta -db ~/refData/$database \
 		-tabbedout out/$section/$otutype/reads.sintax -strand both -sintax_cutoff 0.8
 	
 	#python sintax file correction
