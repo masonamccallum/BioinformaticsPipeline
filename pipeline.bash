@@ -122,7 +122,8 @@ then
 	$usearch -fastx_syncpairs out/rawData/reads1Trunc.fastq_pairs_R1.fastq -reverse out/rawData/reads2Trunc.fastq_pairs_R2.fastq -output out/$section/fwd_sorted.fastq -output2 out/$section/rev_sorted.fastq
 	$usearch -fastq_mergepairs out/$section/fwd_sorted.fastq -reverse out/$section/rev_sorted.fastq -fastqout out/$section/merged.fastq	
 fi
-
+	$usearch -fastq_filter out/$section/merged.fastq -fastq_maxee 1.0\
+		-fastaout out/$section/filtered.fasta
 
 	$usearch8 -search_pcr out/$section/filtered.fasta -db ~/refData/primer$section.fasta -strand both \
 		-maxdiffs 3 -minamp 225 -maxamp 325 -pcr_strip_primers -ampout out/$section/filteredSeq.fasta
