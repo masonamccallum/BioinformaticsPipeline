@@ -67,7 +67,9 @@ done < mappingData.txt
 
 
 echo 'Running python scripts to reformat barcode files'
-python scripts/reformatBarcodes.py out/bar.fasta >> out/bar.fasta
+python scripts/reformatBarcodes.py out/bar.fasta > out/barTemp.fasta
+cat out/barTemp.fasta > out/bar.fasta
+rm out/barTemp.fasta
 python scripts/barcodeSeperate16sandITS.py out/bar.fasta
 
 $usearch -fastx_demux $seqData/read1.fastq -reverse $seqData/read2.fastq\
