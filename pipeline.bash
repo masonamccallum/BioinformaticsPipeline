@@ -154,6 +154,9 @@ echo -ne "\e[0m"
 	#$usearch -otutab out/merged.fastq -otus out/$section/OTU.fasta -otutabout \
 	#	out/$section/tabOTU.txt
 
+	#$usearch -closed_ref out/$section/merged.fastq -db ~/refData/gg97.db -otutabout	otutab_out/$section/closedRef.txt -strand \
+	#	plus -tabbedout closed.txt
+
 	$usearch -otutab out/$section/strippedMerged.fasta -otus out/$section/OTU.fasta -otutabout \
 		out/$section/tabOTU.txt
 
